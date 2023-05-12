@@ -354,7 +354,7 @@ class Scrol_frame(Canvas):
         if scr_x:
             self.config(xscrollcommand = scr_x.set)
             scr_x.config(command = self.xview)
-            scr_x.pack(side = BOTTOM, pady = h(2), padx = w(1), fill = X, expand = True)
+            scr_x.pack(side = BOTTOM, pady = h(2), padx = w(1), fill = X, expand = True, anchor = S)
 
         num = re.compile("\d{1,}")
         try:
