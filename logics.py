@@ -2,19 +2,24 @@ import pyperclip as copier
 import sqlite3
 from datetime import datetime
 from time import strftime
+from string import punctuation, ascii_lowercase
+
+
+punctuations = [i for i in punctuation]
 
 class DateTime:
     def __init__(self, week = datetime.today().isocalendar()[1], day = strftime("%Y-%m-%d"), 
-                 month = strftime("%Y-%m"), year = strftime("%Y"), current_weeks = None, combined = int(strftime("%Y%m%d%H%M")),
-                   combined_date = None) -> None:
+                 month = strftime("%Y-%m"), year = strftime("%Y"), current_weeks = None, combined = strftime("%Y%m%d%H%M"),
+                   combined_date = None, current_datetime = strftime("%Y-%m-%d %H:%M:%S")) -> None:
         self.week = week
         self.day = day
         self.month = month
-        self.year = year
+        self.year = int(year)
         self.current_weeks = current_weeks
-        self.current_weeks = str(week) + str(year)
-        self.combined = combined
+        self.current_weeks = int(float(str(week) + str(year)))
+        self.combined = int(combined)
         self.combined_date = combined_date
+        self.datetime_now = current_datetime
 
     def datedelta(self, start, end):
         date1 = datetime.strptime(start, "%Y-%m-%d %H:%M:%S")
@@ -47,6 +52,67 @@ class DateTime:
                 return seconds
             except ValueError:
                 return "INVALID TOTAL TIME FORMAT"
+
+class Validate:
+    def __init__(self) -> None:
+        pass
+
+    def validate_email(self, email):
+        email = email.strip()
+        if "@" in email and '.com' in email and email[0] not in punctuations and " " not in email:
+            return True
+        else:
+            return False
+    
+    def all_are_numbers(self, value):
+        nums = [str(i) for i in range(10)]
+        decision = True
+        for i in str(value):
+            if i not in nums:
+                decision = False
+        return decision
+
+    def all_are_letters(self, value):
+        letters = [i for i in ascii_lowercase]
+        decision = True
+        for j in str(value):
+            if j not in letters:
+                decision = False
+            return decision
+
+    def validate_rwf_phone_number(self, phone_number):
+        if phone_number.startswith('0') and len(phone_number) == 10 and self.all_are_numbers(phone_number):
+            return True
+        return False
+    
+    def date_is_ahead(self, time1, time2):
+        time_between = DateTime().datedelta(start = time1, end = time2)
+        seconds = DateTime().convert_to_seconds(datetime_str=str(time_between))
+        if seconds > 0:
+            return True
+    
+    def date_is_back(self, time1, time2):
+        time_between = DateTime().datedelta(start = time1, end = time2)
+        seconds = DateTime().convert_to_seconds(datetime_str=str(time_between))
+        if seconds < 0:
+            return True
+
+def turn_into_secs(value, unit):
+    """value: ex: 200
+    unit: ex: days or hours and so on"""
+    if 'sec' in unit:
+        pass
+    elif 'min' in unit:
+        return 60 * value
+    elif 'hour' in unit:
+        return 3600 * value
+    elif 'day' in unit:
+        return 86400 * value
+    elif 'year' in unit:
+        return 86400 * 365 * value
+    else:
+        return None
+    
 
 def separate(numbers):
     floating = []
@@ -107,7 +173,7 @@ def clipboard(data = None, action = None):
     elif action == "paste":
         return copier.paste()
     
-class Database:
+class Sql_database:
     def __init__(self, db_name) -> None:
         self.db = db_name
         self.conn = sqlite3.connect(self.db)
@@ -172,3 +238,8 @@ class Database:
         with conn:
             all_data = conn.execute(f"PRAGMA table_info({table_name})").fetchall()
             return [(row[1], row[2]) for row in all_data]
+        
+
+# dater = Validate()
+# foreword = dater.date_is_ahead(time1 = '2023-07-04 00:00:00', time2='2023-07-05 00:00:00')
+# print(f"DECISION: {foreword}")

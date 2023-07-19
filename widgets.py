@@ -9,12 +9,17 @@ from tkcalendar import Calendar
 import ttkthemes
 import numpy as np
 from textwrap import wrap
-from string import punctuation, ascii_lowercase
-# TESTING THE VIABILITY OF THE GITHUB
-punctuations = [i for i in punctuation]
+from screeninfo import get_monitors
+from threading import Thread
 
-s_width = ruler(0)
-s_height = ruler(1)
+def get_extended_screen_size():
+    # Get the list of all connected screens
+    screens = get_monitors()
+    # Assuming the extended screen is the second one, you can change the index accordingly
+    extended_screen = screens[1] if len(screens) > 1 else screens[0]
+    return extended_screen.width, extended_screen.height
+
+s_width, s_height = get_extended_screen_size()
 
 def w(width:float):
     ratio = width / 1366
@@ -34,50 +39,33 @@ class Restrict:
         else:
             self.widget.bind("<KeyRelease>", lambda e: restrict())
         def restrict():
-            if len(str(self.widget.get())) > max_len:
-                try:
-                    self.widget.delete(max_len-1, END)
-                except TclError:
-                    pass
+            try:
+                if len(str(self.widget.get())) > max_len:
+                    try:
+                        self.widget.delete(max_len-1, END)
+                    except TclError:
+                        pass
+            except TypeError:
+                if len(str(self.widget.get(0.0, END))) > max_len:
+                    try:
+                        self.widget.bind("<KeyRelease>", lambda _:'break')
+                    except TclError:
+                        pass
     
-    def restrict_delete(self):
-        self.widget.bind("<BackSpace>", lambda _: "break")
-        self.widget.bind("<Delete>", lambda _: "break")
-        self.widget.bind("<KeyPress>", lambda _: "break")
+    def restrict_delete(self, add_event = False):
+        if add_event:
+            self.widget.bind("<BackSpace>", lambda _: "break", add = "+")
+            self.widget.bind("<Delete>", lambda _: "break", add = "+")
+            self.widget.bind("<KeyPress>", lambda _: "break", add = "+")
+        else:
+            self.widget.bind("<BackSpace>", lambda _: "break")
+            self.widget.bind("<Delete>", lambda _: "break")
+            self.widget.bind("<KeyPress>", lambda _: "break")
     
-class Validate:
-    def __init__(self) -> None:
-        pass
-
-    def validate_email(self, email):
-        email = email.strip()
-        if "@gmail.com" in email and not email[0] not in punctuations and " " not in email:
-            return True
-        elif "@" in email and '.com' in email and "gmail" not in email and email[0] not in punctuations and " " not in email:
-            return True
-        return False
-    
-    def all_are_numbers(self, value):
-        nums = [str(i) for i in range(10)]
-        decision = True
-        for i in str(value):
-            if i not in nums:
-                decision = False
-        return decision
-
-    def all_are_letters(self, value):
-        letters = [i for i in ascii_lowercase]
-        decision = True
-        for j in str(value):
-            if j not in letters:
-                decision = False
-            return decision
-
-    def validate_rwf_phone_number(self, phone_number):
-        if phone_number.startswith('0') and len(phone_number) == 10 and self.all_are_numbers(phone_number):
-            return True
-        return False
-        
+    def restrict_textbox_char_length(textbox, max_len):
+        """bind textbox widget to the keyrelease trigger to call this function"""
+        if len(textbox.get(0.0, END)) == max_len + 1:
+            textbox.delete('end-2c', END)
 class frame(Frame):
     def __init__(self, master, **kwargs):
         super().__init__(master=master,bd = 0, **kwargs)
@@ -149,7 +137,6 @@ class treeview(ttk.Treeview):
             """I assume that datalist is a list as the name implies"""
             all_row = []
             for item in data_list:
-                # print(f"CURRENT ITEM: {item}")
                 if type(item) == str:
                     wrapped = wrap(item, wrap_length)
                     all_row.append("\n".join(wrapped))
@@ -166,11 +153,9 @@ class treeview(ttk.Treeview):
                     if self.index_for_single_list_data % 2 ==0:
                         tag = ('even',)
                     data_wrapped = wrapping(data)
-                    print(" [K: ] {data_wrapped}")
                     self.insert("", index=self.index_for_single_list_data,text=self.index_for_single_list_data + 1, values = data_wrapped, tags = tag)
                 else:
                     data_wrapped = wrapping(data)
-                    print(" [I: ] {data_wrapped}")
                     self.insert("", index=self.index_for_single_list_data, values = data_wrapped)
                 self.index_for_single_list_data += 1
                 
@@ -181,11 +166,9 @@ class treeview(ttk.Treeview):
                         tag = ('even',)
                     if self.include_index:
                         data_wrapped = wrapping(row)
-                        print(" [H: ] {data_wrapped}")
                         self.insert("", index=index,text=self.index_for_single_list_data+1, values = data_wrapped, tags=tag)
                     else:
                         data_wrapped = wrapping(row)
-                        print(" [G: ] {data_wrapped}")
                         self.insert("", index=index, values = data_wrapped)
                     self.index_for_single_list_data += 1
         except IndexError:
@@ -248,14 +231,21 @@ class btn(Button):
         elif "plan" in str(self['text']).lower():
             self.config(bg = "#600", fg = "#fff", image = image)
             prev_color = self.cget('bg')
+            
+        elif " all" in str(self['text']).lower():
+            self.config(image = image)
+        
+        elif " id" in str(self['text']).lower():
+            self.config(image = image)
+        else:
+            try:
+                prev_color = self.cget('bg')
+            except Exception:
+                pass
 
-        if " all" in str(self['text']).lower():
-            self.config(image = image)
         
-        if " id" in str(self['text']).lower():
-            self.config(image = image)
         
-        self.bind('<Enter>', lambda e: self.config(bg = '#39ff13'))
+        self.bind('<Enter>', lambda e: self.config(bg = '#FF78C4'))
         self.bind('<Leave>', lambda e: self.config(bg = prev_color))
     
 
@@ -279,7 +269,7 @@ class panedw(ttk.Panedwindow):
 class EntryBtns:
     def __init__(self, parent, saved_data_holder, entry_tags, entry_fr_height = h(50),
                         entry_fr_side = TOP, fill = X, widget_2_create = 'entry'
-                        , browse = False, ent_id_width = 5, default = None):
+                        , browse = False, ent_id_width = 5, default = None, keep_default = False):
         
         self.saved_data_holder = saved_data_holder
         self.entry_tags = entry_tags
@@ -292,11 +282,11 @@ class EntryBtns:
         self.fr.pack(side=entry_fr_side, fill=fill, padx = w(2), expand = True)
         
         if widget_2_create == 'entry':
-            self.ent = entry(self.fr, fg="gray50", default=default)
+            self.ent = entry(self.fr, fg="gray50", default=default, keep_default=keep_default)
             self.ent.pack(side=LEFT, fill=X, ipadx=w(40), expand = True, pady = h(2))
 
         elif widget_2_create == 'text':
-            self.ent = Textb(self.fr, default=default, height = h(4))
+            self.ent = Textb(self.fr, default=default, height = h(4), keep_default=keep_default)
             self.ent.pack(padx = w(1), pady=h(1), side = LEFT, expand = True, fill = X)
                 
 
@@ -390,12 +380,16 @@ def choose_color(color_holder = None):
 
 #==============ENTRY===============
 class entry(Entry):
-    def __init__(self, master, default = None, font = ('arial', w(12)), **kwargs):
+    def __init__(self, master, default = None, keep_default = False, font = ('arial', w(12)), **kwargs):
         super().__init__(master = master, bg = master['bg'], highlightbackground='gray50', highlightcolor="gray50", highlightthickness=1,bd=0, font = font, **kwargs)
         
-        if default:
+        if default and not keep_default:
             self.bind("<KeyPress>", lambda e: remove_txt())
             self.bind("<Leave>", lambda e: add_txt())
+            self.delete(0, END)
+            self.insert(END, default)
+            self.config(fg = "gray50")
+        elif default and keep_default:
             self.delete(0, END)
             self.insert(END, default)
             self.config(fg = "gray50")
@@ -411,7 +405,7 @@ class entry(Entry):
             pass
 
         def remove_txt():
-            if default.strip() in str(self.get()).strip():
+            if str(default).strip() in str(self.get()).strip():
                 self.delete(0, END)
                 self.config(fg = "#000")
         
@@ -442,12 +436,9 @@ class combo(ttk.Combobox):
                 self.set('')
         
         def set_default():
-            print("LEAVING COMBOBOX.....")
             if self.get().strip() == "" or len(self.get().strip()) == 0:
                 self.set(default)
-                print("[DEFAULT SET]")
-            else:
-                print(f"COMBO VALUE FOUND: {self.get().strip()}: length: {len(self.get().strip())}")
+            
 
         if self.cget('state') != 'readonly':
             if default:
@@ -512,12 +503,15 @@ class label(Label):
         super().__init__(master=master, font = ('arial', w(12)), bg = master['bg'], **kwargs)
 
 class Textb(Text):
-    def __init__(self, master, hbg = "gray80", default = None, **kwargs):
+    def __init__(self, master, hbg = "gray80", default = None, keep_default = False, **kwargs):
         super().__init__(master, font = ('arial', w(12)), highlightbackground=hbg, highlightcolor=hbg, highlightthickness=1, bg = master['bg'],fg = "gray30", bd = 0, **kwargs)
-        if default:
+        if default and not keep_default:
             self.bind("<KeyPress>", lambda e: remove_txt())
             self.bind("<Leave>", lambda e: add_txt())
+            self.delete(0.0, END)
+            self.insert(END, default)
 
+        elif default and keep_default:
             self.delete(0.0, END)
             self.insert(END, default)
             
@@ -539,19 +533,23 @@ class Textb(Text):
                 self.config(bg = text+str(num))
         except Exception:
             pass
-
+    
 
 class spinbox(ttk.Spinbox):
     def __init__(self, master, **kwargs):
         super().__init__(master =master, **kwargs)
 
 class calendar(Calendar):
-    def __init__(self, master, global_date_holder:Variable, date_holder_widget = None, create_toplevel = False, **kw):
+    def __init__(self, master, global_date_holder:Variable, date_holder_widget = None, create_toplevel = False, 
+                 destroy_after_set = True, is_valid_date = True, date_only = False, **kw):
         super().__init__(master = master, **kw)
         self.master = master
         self.global_time_holder = global_date_holder
         self.datetime_fr = None
         self.choosen_date = date_holder_widget
+        self.destroy_after_set = destroy_after_set
+        self.is_valid_date = is_valid_date
+        self.date_only = date_only
         if not create_toplevel:
             self.datetime_fr = lframe(self.master)
             self.datetime_fr.pack(side=RIGHT, padx = w(2))
@@ -581,13 +579,13 @@ class calendar(Calendar):
         time_fr = lframe(self.datetime_fr2, width = w(50))
         time_fr.pack(padx = w(2), fill=BOTH)
         label(time_fr, text = "Hour").pack(side = TOP, fill = X, pady = h(1))
-        hour = spinbox(time_fr, from_=0, to=23)
+        hour = spinbox(time_fr, from_=0, to=23, state = 'readonly')
         hour.pack(side = TOP, fill = X)
         Label(time_fr, text = "Minute").pack(side = TOP, fill = X, pady = h(1))
-        minute = spinbox(time_fr, from_=0, to=59)
+        minute = spinbox(time_fr, from_=0, to=59, state = 'readonly')
         minute.pack(side = TOP, fill = X, pady = h(1))
         Label(time_fr, text = "Second").pack(side = TOP, fill = X, pady = h(1))
-        second = spinbox(time_fr, from_=0, to=59)
+        second = spinbox(time_fr, from_=0, to=59, state = 'readonly')
         second.pack(side = TOP, fill = X, pady = h(1))
         
 
@@ -609,13 +607,17 @@ class calendar(Calendar):
                 m = "0" + m
             if len(s) != 2:
                 s = "0" + s
-            final_datetime = data[2] + "-" + data[0] + "-" + data[1] + " " + f"{h}:{m}:{s}"
-            # COPY THE SELECTED DATE AND TIME
-            # clipboard(data = final_datetime, action = "copy")
+            final_datetime = None
+            if not self.date_only:
+                final_datetime = data[2] + "-" + data[0] + "-" + data[1] + " " + f"{h}:{m}:{s}"
+            else:
+                final_datetime = data[2] + "-" + data[0] + "-" + data[1]
+            
             # GLOBALIZE SELECTED DATE
             global_date_holder = final_datetime
             
             if self.choosen_date:
+                # validate date
                 try:
                     self.choosen_date.delete(0, END)
                     self.choosen_date.insert(END, final_datetime)
@@ -625,11 +627,23 @@ class calendar(Calendar):
                         self.choosen_date.insert(END, final_datetime)
                     except Exception:
                         pass
-            self.datetime_fr.destroy()
+            if self.destroy_after_set:
+                self.datetime_fr.destroy()
             
             
         set_date = btn(master=self.datetime_fr3, text = "set date", command = set_selected)
+        set_date.bind("<Enter>", lambda e: lock_btn(button = set_date))
+        set_date.bind("<Leave>", lambda e: unlock_btn(button = set_date))
         set_date.pack(side=LEFT, fill=X, expand=True)
+
+        def lock_btn(button):
+            if not self.is_valid_date:
+                button.config(state = DISABLED)
+
+        def unlock_btn(button):
+            if self.is_valid_date:
+                button.config(state = NORMAL)
+
         close = btn(master=self.datetime_fr3, text = "close", 
                          command = lambda: self.datetime_fr.destroy())
         close.pack(side=LEFT, fill=X, expand = True)
@@ -883,9 +897,23 @@ class Modify:
 
         return delete_btn, edit_btn, status, details
 
+def get_parent(widget, root_of_app):
+    parent_name = widget.winfo_parent()
+    parent_widget = root_of_app.nametowidget(parent_name)
+    return parent_widget
 
+
+def wrapped_text(text:str, wrap_length = 20):
+    all_row = []
+    for item in text.splitlines():
+        if type(item) == str:
+            wrapped = wrap(item, wrap_length)
+            all_row.append("\n".join(wrapped))
+        else:
+            all_row.append(item)
+    return "".join(all_row)
 
 # CONSTANTS
-comb_syle = 'comb.TCombobox'
+comb_style = 'comb.TCombobox'
 check_style = "TCheckbutton"
 radio_style = "Custom.TRadiobutton"
