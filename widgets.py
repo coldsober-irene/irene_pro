@@ -10,7 +10,7 @@ import ttkthemes
 import numpy as np
 from textwrap import wrap
 from string import punctuation, ascii_lowercase
-
+# TESTING THE VIABILITY OF THE GITHUB
 punctuations = [i for i in punctuation]
 
 s_width = ruler(0)
