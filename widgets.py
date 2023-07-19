@@ -11,6 +11,7 @@ import numpy as np
 from textwrap import wrap
 from screeninfo import get_monitors
 from threading import Thread
+import atexit
 
 def get_extended_screen_size():
     # Get the list of all connected screens
@@ -19,7 +20,7 @@ def get_extended_screen_size():
     extended_screen = screens[1] if len(screens) > 1 else screens[0]
     return extended_screen.width, extended_screen.height
 
-s_width, s_height = get_extended_screen_size()
+s_width, s_height = ruler
 
 def w(width:float):
     ratio = width / 1366
@@ -267,7 +268,7 @@ class panedw(ttk.Panedwindow):
         super().__init__(master=master, **kwargs)
 
 class EntryBtns:
-    def __init__(self, parent, saved_data_holder, entry_tags, entry_fr_height = h(50),
+    def __init__(self, parent, saved_data_holder:dict, entry_tags:list, entry_fr_height = h(50),
                         entry_fr_side = TOP, fill = X, widget_2_create = 'entry'
                         , browse = False, ent_id_width = 5, default = None, keep_default = False):
         
