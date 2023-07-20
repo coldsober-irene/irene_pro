@@ -8,24 +8,38 @@ from string import punctuation, ascii_lowercase
 punctuations = [i for i in punctuation]
 
 class DateTime:
-    def __init__(self, week = datetime.today().isocalendar()[1], day = strftime("%Y-%m-%d"), 
-                 month = strftime("%Y-%m"), year = strftime("%Y"), current_weeks = None, combined = strftime("%Y%m%d%H%M"),
-                   combined_date = None, current_datetime = strftime("%Y-%m-%d %H:%M:%S")) -> None:
+    def __init__(self, week = None, day = None, month = None, year = None, current_weeks = None, combined = None, current_datetime = None) -> None:
         self.week = week
         self.day = day
         self.month = month
-        self.year = int(year)
+        self.year = year
         self.current_weeks = current_weeks
-        self.current_weeks = int(float(str(week) + str(year)))
-        self.combined = int(combined)
-        self.combined_date = combined_date
+        self.combined = combined
         self.datetime_now = current_datetime
+
+    def get_update_breaker(self, *breaker):
+        return breaker[0]
+        # 0782668953 : muringa
+
+    def update_dates(self, func):
+        while True:
+            breaker = func()
+            self.week = datetime.today().isocalendar()[1]
+            self.day = strftime("%Y-%m-%d")
+            self.month =strftime("%Y-%m")
+            self.year = int(strftime("%Y"))
+            self.current_weeks = int(float(str(self.week) + str(self.year)))
+            self.combined = int(strftime("%Y%m%d%H%M%S"))
+            self.datetime_now = strftime("%Y-%m-%d %H:%M:%S")
+            if breaker:
+                break
 
     def datedelta(self, start, end):
         date1 = datetime.strptime(start, "%Y-%m-%d %H:%M:%S")
         date2 = datetime.strptime(end, "%Y-%m-%d %H:%M:%S")
         delta = date2 - date1
         return delta
+    
     @property
     def combinedDate(self):
         return [self.year, self.month, self.current_weeks, self.day, self.combined]

@@ -20,7 +20,8 @@ def get_extended_screen_size():
     extended_screen = screens[1] if len(screens) > 1 else screens[0]
     return extended_screen.width, extended_screen.height
 
-s_width, s_height = ruler
+s_width = ruler(0) 
+s_height = ruler(1)
 
 def w(width:float):
     ratio = width / 1366
@@ -194,7 +195,7 @@ class btn(Button):
             prev_color = self.cget('bg')
         
         elif "add" in str(self['text']).lower():
-            self.config(bg = "#008000", fg = "#fff", image = image)
+            self.config(bg = "#056674", fg = "#fff", image = image)
             prev_color = self.cget('bg')
 
         elif "delete" in str(self['text']).lower():
@@ -235,6 +236,22 @@ class btn(Button):
             
         elif " all" in str(self['text']).lower():
             self.config(image = image)
+        
+        elif "start" in str(self['text']).lower():
+            self.config(bg = "#0D4C92", fg = "#fff")
+            prev_color = self.cget('bg')
+        
+        elif "post" in str(self['text']).lower():
+            self.config(bg = "#EB6440", fg = "#fff")
+            prev_color = self.cget('bg')
+        
+        elif "new " in str(self['text']).lower():
+            self.config(bg = "#512D6D", fg = "#fff")
+            prev_color = self.cget('bg')
+
+        elif "finish" in str(self['text']).lower():
+            self.config(bg = "#03C4A1", fg = "#fff")
+            prev_color = self.cget('bg')
         
         elif " id" in str(self['text']).lower():
             self.config(image = image)
@@ -542,7 +559,7 @@ class spinbox(ttk.Spinbox):
 
 class calendar(Calendar):
     def __init__(self, master, global_date_holder:Variable, date_holder_widget = None, create_toplevel = False, 
-                 destroy_after_set = True, is_valid_date = True, date_only = False, **kw):
+                 destroy_after_set = True, is_valid_date = True, date_only = False, other_widget_2_destroy = None, **kw):
         super().__init__(master = master, **kw)
         self.master = master
         self.global_time_holder = global_date_holder
@@ -551,6 +568,7 @@ class calendar(Calendar):
         self.destroy_after_set = destroy_after_set
         self.is_valid_date = is_valid_date
         self.date_only = date_only
+        self.other_widget_2_kill = other_widget_2_destroy
         if not create_toplevel:
             self.datetime_fr = lframe(self.master)
             self.datetime_fr.pack(side=RIGHT, padx = w(2))
@@ -630,7 +648,8 @@ class calendar(Calendar):
                         pass
             if self.destroy_after_set:
                 self.datetime_fr.destroy()
-            
+                if self.other_widget_2_kill:
+                    self.other_widget_2_kill.destroy()
             
         set_date = btn(master=self.datetime_fr3, text = "set date", command = set_selected)
         set_date.bind("<Enter>", lambda e: lock_btn(button = set_date))
