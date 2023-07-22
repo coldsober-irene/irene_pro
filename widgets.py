@@ -247,6 +247,14 @@ class btn(Button):
         elif "new " in str(self['text']).lower():
             self.config(bg = "#512D6D", fg = "#fff")
             prev_color = self.cget('bg')
+        
+        elif "create " in str(self['text']).lower() or "create" in str(self['text']).lower():
+            self.config(bg = "#b04", fg = "#fff")
+            prev_color = self.cget('bg')
+        
+        elif "sign in" in str(self['text']).lower():
+            self.config(bg = "#b04", fg = "#fff")
+            prev_color = self.cget('bg')
 
         elif "finish" in str(self['text']).lower():
             self.config(bg = "#03C4A1", fg = "#fff")
@@ -698,121 +706,59 @@ class Browse:
         else:
             return dir
 
-class LoginSignup:
-    def __init__(self,master,width = w(450), height = h(250), login = False, frame_pack_side = TOP) -> None:
-        self.base_frame = lframe(master, width = width, height = height)
-        self.base_frame.config(bd = 1)
-        self.base_frame.pack(side = frame_pack_side, padx = w(1), pady = h(1))
-        self.base_frame.pack_propagate(False)
-        self.base_frame.config(bg = "beige")
 
-        self.login_frame = []
-        self.signup_frame = []
+class SignUpIn:
+    def __init__(self, create_toplevel = True, parent = None, signup = True, title = "Create Account") -> None:
+        self.create_toplevel = create_toplevel
+        self.parent = parent
+        self.signup = signup
+        self.work_place = None
 
-        if login:
-            self.login()
+        if create_toplevel:
+            self.work_place = Toplevel()
+            self.work_place.title('Sign up or Sign in')
+            self.work_place.geometry(f'{300}x{300}')
+            self.work_place.resizable(False, False)
+        elif not create_toplevel and parent:
+            self.work_place = frame(parent, width = w(300), height = h(300))
+            self.work_place.pack()
         else:
-            self.signup()
-
-    def login(self):
-        global lusername, lpassword, login_btn
-        for fr in self.login_frame:
-            fr.destroy()
-
-        login_fr = frame(self.base_frame)
-        login_fr.pack(fill = BOTH, expand = True)
-        self.login_frame.append(login_fr)
-        self.signup_frame.append(login_fr)
-
-        # title
-        title = label(login_fr, text = "Login")
-        title.config(font = ('arial',w(30), "bold"), fg = "#089")
-        title.pack(side = TOP, pady = h(1), padx = w(1))
-        self.login_frame.append(title)
-
-        # username
-        lusername = entry(login_fr, default="Enter username")
-        lusername.config(font = 20)
-        lusername.pack(side = TOP, pady = h(4), padx = w(1), fill = X, expand = True)
-
-        # password
-        lpassword = entry(login_fr, default="Enter password")
-        lpassword.pack(side = TOP, pady = h(2), padx = w(1), fill = X, expand = True)
-
-        btns = frame(login_fr)
-        btns.config(bg = login_fr['bg'])
-        btns.pack(fill = X, side = BOTTOM, expand = True, padx = w(1), pady = h(1), anchor=S)
-
-        login_btn = btn(btns, text = "sign in")
-        login_btn.config(bg = "#b04", fg = "#fff")
-        login_btn.pack(side = LEFT, padx = w(3), expand = True, fill = X)
-
-        signup_btn = btn(btns, text = "Sign up", command = self.signup)
-        signup_btn.config(bg = "#023", fg = "#fff")
-        signup_btn.pack(side = LEFT, padx = w(3), expand = True, fill = X)
-
-
-        cancel_btn = btn(btns, text = "cancel", command = lambda: self.base_frame.destroy())
-        cancel_btn.config(bg = "#600", fg = "#fff")
-        cancel_btn.pack(side = RIGHT, padx = w(3), expand = True, fill = X)
-    
-    @property
-    def Login_btn(self):
-        return login_btn
-
-    def login_user_data(self):
-        return lusername.get(), lpassword.get()
-
-    def signup(self):
-        global signup_btn, username, password, re_password
-        for fr in self.signup_frame:
-            fr.destroy()
-            
-        signup_fr = frame(self.base_frame)
-        signup_fr.pack(fill = BOTH, expand = True)
-        signup_fr.pack_propagate(False)
-        self.signup_frame.append(signup_fr)
-        self.login_frame.append(signup_fr)
+            raise Exception('No parent', 'set create_toplevel to True or put parent for the frame widget')
         
-        # title
-        title = label(signup_fr, text = "Sign up")
-        title.config(font = ('arial',w(30), "bold"), fg = "#089")
-        title.pack(side = TOP, pady = h(1), padx = w(1))
-        self.signup_frame.append(title)
-        
-        # username
-        username = entry(signup_fr, default="Enter username")
-        username.pack(side = TOP, pady = h(1), padx = w(3), fill = X, expand = True)
+        if self.work_place:
+            tit = label(self.work_place, text = title)
+            tit.config(font = w(20), fg = '#fff', bg = "#982176")
+            tit.pack(side = TOP, fill = X)
 
-        # password
-        password = entry(signup_fr, default="Enter password (8 characters min)")
-        password.pack(side = TOP, pady = h(1), padx = w(3), fill = X, expand = True)
-
-        re_password = entry(signup_fr, default="Re-type password")
-        re_password.pack(side = TOP, pady = h(1), padx = w(3), fill = X, expand = True)
-
-        btns = frame(signup_fr)
-        btns.config(bg = signup_fr['bg'])
-        btns.pack(fill = X, side = TOP, expand = True, padx = w(1), pady = h(1), anchor=S)
-
-        login_btn = btn(btns, text = "login", command = self.login)
-        login_btn.config(bg = "#b04", fg = "#fff")
-        login_btn.pack(side = LEFT, padx = w(1), expand = True, fill = X)
-
-        signup_btn = btn(btns, text = "Sign up")
-        signup_btn.config(bg = "#023", fg = "#fff")
-        signup_btn.pack(side = LEFT, padx = w(1), expand = True, fill = X)
-
-        cancel_btn = btn(btns, text = "cancel", command = lambda: self.base_frame.destroy())
-        cancel_btn.config(bg = "#600", fg = "#fff")
-        cancel_btn.pack(side = LEFT, padx = w(1), expand = True, fill = X)
-
-    @property
-    def Signup_btn(self):
-        return signup_btn
+            self.username = self.__widget(self.work_place, default='Username')
+            self.password = self.__widget(self.work_place, default='Password')
+            if signup:
+                self.re_password = self.__widget(self.work_place, default='Re-type password')
+                self.confirm = btn(self.work_place, text = 'Create')
+                self.confirm.config(bg = "#005792", fg = "#fff")
+                self.confirm.pack(side = TOP, pady = h(1), fill = X)
+            else:
+                self.signin = btn(self.work_place, text = 'Sign in')
+                self.signin.config(bg = "#B3005E", fg = "#fff")
+                self.signin.pack(side = TOP, pady = h(1), fill = X)
+            self.cancel = btn(self.work_place, text = 'Cancel', command = lambda: self.work_place.destroy())
+            self.cancel.pack(side = TOP, pady = h(1), fill = X)
     
-    def signup_user_data(self):
-        return username.get(), password.get(), re_password.get()
+    def __widget(self, parent, default = None):
+        fr = frame(parent)
+        fr.pack(side = TOP, padx = w(2), pady = h(2), fill = X)
+        label(fr, text = default).pack(side = LEFT, anchor = W)
+        user = entry(fr, default=default)
+        user.pack(side = RIGHT, anchor = E, padx = w(2))
+
+        return user
+    
+    def widgets(self, signin = True):
+        common_ = [self.username, self.password]
+        if signin:
+            return common_+ [self.signin, self.cancel]
+        return common_+ [self.re_password,self.confirm, self.cancel]
+        
 
 class Table_gui:
     def __init__(self, parent):
