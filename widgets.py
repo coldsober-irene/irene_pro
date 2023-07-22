@@ -118,13 +118,12 @@ class treeview(ttk.Treeview):
 
         i = 0
         for col in columns:
-            self.column(col,width = col_width, stretch=True)
+            self.column(col,width = col_width, stretch=True, anchor=CENTER)
             self.heading(col, text = col, anchor = CENTER)
             i += 1
 
         self.index_for_single_list_data = 0
 
-        
     def alter_rows(self, odd_color = 'gray70', even_color = 'khaki'):
         style = ttkthemes.ThemedStyle(self.master)
         style.theme_use("clam")
@@ -287,7 +286,9 @@ class panedw(ttk.Panedwindow):
 class EntryBtns:
     def __init__(self, parent, saved_data_holder:dict, entry_tags:list, entry_fr_height = h(50),
                         entry_fr_side = TOP, fill = X, widget_2_create = 'entry'
-                        , browse = False, ent_id_width = 5, default = None, keep_default = False):
+                        , browse = False, ent_id_width = 5, default = None, keep_default = False,
+                        extensions = ".txt .docx .pdf .xlsx .png .jpg",
+                        browse_many_files = False):
         
         self.saved_data_holder = saved_data_holder
         self.entry_tags = entry_tags
@@ -317,7 +318,7 @@ class EntryBtns:
 
         if browse:
             # IF BROWSE, WHEN USER CLICK IN ENTRY THEN AUTOMATICALLY BROWSE A FILE
-            self.ent.bind("<Button-1>", lambda e: Browse.get_file(self = Browse, extensions=".txt .docx .pdf .xlsx .png .jpg",
+            self.ent.bind("<Button-1>", lambda e: Browse().get_file(extensions=extensions,
                                                                    file_holder=self.ent))
         
         btn_width = w(5)
@@ -674,9 +675,20 @@ class Browse:
     
     def get_file(self, extensions: str, file_holder:Entry):
         file = filedialog.askopenfilename(filetypes = [('All file', extensions)])
+        if self.many_file:
+            file = filedialog.askopenfilenames(filetypes = [('All file', extensions)])
+        
         file_holder.delete(0, END)
         file_holder.insert(END, file)
         file_holder.focus()
+    
+    def get_many_files(self,parent_win, extensions: str, file_holder:Entry):
+        file = filedialog.askopenfilenames(parent=parent_win, filetypes = [('All file', extensions)])
+        files = parent_win.splitlist(file)
+        file_holder.delete(0, END)
+        file_holder.insert(END, files)
+        file_holder.focus()
+        return files
     
     def browse_path(self, dir_holder = None):
         dir = filedialog.askdirectory()
