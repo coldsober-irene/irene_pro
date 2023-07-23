@@ -683,8 +683,6 @@ class Browse:
     
     def get_file(self, extensions: str, file_holder:Entry):
         file = filedialog.askopenfilename(filetypes = [('All file', extensions)])
-        if self.many_file:
-            file = filedialog.askopenfilenames(filetypes = [('All file', extensions)])
         
         file_holder.delete(0, END)
         file_holder.insert(END, file)
@@ -717,23 +715,25 @@ class SignUpIn:
         if create_toplevel:
             self.work_place = Toplevel()
             self.work_place.title('Sign up or Sign in')
-            self.work_place.geometry(f'{300}x{300}')
+            self.work_place.geometry(f'{400}x{400}')
             self.work_place.resizable(False, False)
         elif not create_toplevel and parent:
-            self.work_place = frame(parent, width = w(300), height = h(300))
-            self.work_place.pack()
+            self.work_place = frame(parent, width = w(400), height = h(400))
+            self.work_place.pack(pady = h(100))
         else:
             raise Exception('No parent', 'set create_toplevel to True or put parent for the frame widget')
         
         if self.work_place:
             tit = label(self.work_place, text = title)
-            tit.config(font = w(20), fg = '#fff', bg = "#982176")
+            tit.config(font = ('arial', w(30), 'bold'), fg = '#fff', bg = "#982176")
             tit.pack(side = TOP, fill = X)
 
             self.username = self.__widget(self.work_place, default='Username')
             self.password = self.__widget(self.work_place, default='Password')
+            self.password.config(show = '*')
             if signup:
                 self.re_password = self.__widget(self.work_place, default='Re-type password')
+                self.re_password.config(show = '*')
                 self.confirm = btn(self.work_place, text = 'Create')
                 self.confirm.config(bg = "#005792", fg = "#fff")
                 self.confirm.pack(side = TOP, pady = h(1), fill = X)
