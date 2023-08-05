@@ -3,9 +3,11 @@ import sqlite3
 from datetime import datetime
 from time import strftime
 from string import punctuation, ascii_lowercase
+from threading import Thread
 
 
 punctuations = [i for i in punctuation]
+breaker_value = False
 
 class DateTime:
     def __init__(self, week = None, day = None, month = None, year = None, current_weeks = None, combined = None, current_datetime = None) -> None:
@@ -16,14 +18,21 @@ class DateTime:
         self.current_weeks = current_weeks
         self.combined = combined
         self.datetime_now = current_datetime
+        Make_thread(target = self.update_dates)
 
     def get_update_breaker(self, *breaker):
+        # print(self.week ,
+        #     self.day,
+        #     self.month ,
+        #     self.year ,
+        #     self.current_weeks ,
+        #     self.combined ,
+        #     self.datetime_now)
         return breaker[0]
         # 0782668953 : muringa
 
-    def update_dates(self, func):
+    def update_dates(self):
         while True:
-            breaker = func()
             self.week = datetime.today().isocalendar()[1]
             self.day = strftime("%Y-%m-%d")
             self.month =strftime("%Y-%m")
@@ -31,6 +40,8 @@ class DateTime:
             self.current_weeks = int(float(str(self.week) + str(self.year)))
             self.combined = int(strftime("%Y%m%d%H%M%S"))
             self.datetime_now = strftime("%Y-%m-%d %H:%M:%S")
+            breaker = self.get_update_breaker(breaker_value)
+            # print(f"BREAKER: {breaker}")
             if breaker:
                 break
 
@@ -252,8 +263,18 @@ class Sql_database:
         with conn:
             all_data = conn.execute(f"PRAGMA table_info({table_name})").fetchall()
             return [(row[1], row[2]) for row in all_data]
+
+class Make_thread:
+    def __init__(self, target) -> None:
+        self.target = target
+        self.run_thread()
+    def run_thread(self):
+        t = Thread(target = self.target)
+        t.start()
         
 
 # dater = Validate()
 # foreword = dater.date_is_ahead(time1 = '2023-07-04 00:00:00', time2='2023-07-05 00:00:00')
 # print(f"DECISION: {foreword}")
+    
+    
