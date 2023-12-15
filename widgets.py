@@ -13,6 +13,11 @@ from screeninfo import get_monitors
 from threading import Thread
 import atexit
 
+# def onclose(*stoppers):
+#     global stopper
+#     stopper = True 
+#     self.destroy()
+
 def get_extended_screen_size():
     # Get the list of all connected screens
     screens = get_monitors()
